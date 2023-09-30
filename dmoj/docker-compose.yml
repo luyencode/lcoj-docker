@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   db:
-    container_name: vnoj_mysql
+    container_name: lcoj_mysql
     image: mariadb
     restart: unless-stopped
     volumes:
@@ -11,7 +11,7 @@ services:
     #ports:
     #  - 3306:3306
   redis:
-    container_name: vnoj_redis
+    container_name: lcoj_redis
     image: redis:alpine
     restart: unless-stopped
     networks: [site]
@@ -21,14 +21,14 @@ services:
     build:
       context: .
       dockerfile: ./base/Dockerfile
-    image: vnoj/vnoj-base
+    image: lcoj/lcoj-base
     network_mode: none
   site:
-    container_name: vnoj_site
+    container_name: lcoj_site
     build:
       context: .
       dockerfile: ./site/Dockerfile
-    image: vnoj/vnoj-site
+    image: lcoj/lcoj-site
     init: true
     restart: unless-stopped
     volumes:
@@ -44,11 +44,11 @@ services:
     networks: [site, nginx, db]
     depends_on: [base, db, redis]
   celery:
-    container_name: vnoj_celery
+    container_name: lcoj_celery
     build:
       context: .
       dockerfile: ./celery/Dockerfile
-    image: vnoj/vnoj-celery
+    image: lcoj/lcoj-celery
     init: true
     restart: unless-stopped
     volumes:
@@ -60,11 +60,11 @@ services:
     networks: [site, db]
     depends_on: [base, db, redis]
   bridged:
-    container_name: vnoj_bridged
+    container_name: lcoj_bridged
     build:
       context: .
       dockerfile: ./bridged/Dockerfile
-    image: vnoj/vnoj-bridged
+    image: lcoj/lcoj-bridged
     init: true
     restart: unless-stopped
     volumes:
@@ -78,11 +78,11 @@ services:
       - 9998:9998
       - 9999:9999
   wsevent:
-    container_name: vnoj_wsevent
+    container_name: lcoj_wsevent
     build:
       context: .
       dockerfile: ./wsevent/Dockerfile
-    image: vnoj/vnoj-wsevent
+    image: lcoj/lcoj-wsevent
     init: true
     restart: unless-stopped
     volumes:
@@ -96,7 +96,7 @@ services:
     #  - 15101:15101
     #  - 15102:15102
   nginx:
-    container_name: vnoj_nginx
+    container_name: lcoj_nginx
     image: nginx:alpine
     restart: unless-stopped
     ports:

@@ -1,4 +1,4 @@
-FROM vnoj/vnoj-base:latest
+FROM lcoj/lcoj-base:latest
 
 EXPOSE 9999
 EXPOSE 9998
