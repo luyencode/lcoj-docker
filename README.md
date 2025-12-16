@@ -1,141 +1,150 @@
-# VNOJ Docker
+# LCOJ Docker
 
-This repository contains the Docker files to run the [VNOJ](https://github.com/VNOI-Admin/OJ).
+[English](README_en.md) | **Tiếng Việt**
 
-Based on [dmoj-docker](https://github.com/Ninjaclasher/dmoj-docker).
+Repository này chứa các file Docker để chạy [LCOJ](https://github.com/luyencode/lcoj-docker).
 
-## Installation
+Dựa trên [dmoj-docker](https://github.com/Ninjaclasher/dmoj-docker) và [vnoj-docker](https://github.com/VNOI-Admin/vnoj-docker).
 
-First, [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) must be installed. Installation instructions can be found on their respective websites.
+## Yêu cầu
 
-Clone the repository:
+Bạn cần cài đặt [Docker](https://www.docker.com/) và [Docker Compose](https://docs.docker.com/compose/) trước khi bắt đầu.
 
-```sh
-$ git clone --recursive https://github.com/VNOI-Admin/vnoj-docker.git
-$ cd vnoj-docker/dmoj
-```
+## Cài đặt
 
-From now on, it is assumed you are in the `dmoj` directory.
-
-Initialize the setup by moving the configuration files into the submodule and creating the necessary directories:
+### Bước 1: Tải mã nguồn
 
 ```sh
-$ ./scripts/initialize
+git clone --recursive https://github.com/luyencode/lcoj-docker.git
+cd lcoj-docker/dmoj
 ```
 
-Next, configure the environment variables in the files in `dmoj/environment/`. Create the files from the examples:
+Từ giờ, tất cả các lệnh đều chạy trong thư mục `dmoj`.
+
+### Bước 2: Khởi tạo
+
+Chạy script khởi tạo để tạo các thư mục cần thiết:
 
 ```sh
-$ cp environment/mysql-admin.env.example environment/mysql-admin.env
-$ cp environment/mysql.env.example environment/mysql.env
-$ cp environment/site.env.example environment/site.env
+./scripts/initialize
 ```
 
-Then, set the MYSQL passwords in `mysql.env` and `mysql-admin.env`, and the host and secret key in `site.env`. Also, configure the `server_name` directive in `dmoj/nginx/conf.d/nginx.conf`.
+### Bước 3: Cấu hình
 
-Next, build the images:
+Tạo các file cấu hình từ file mẫu:
 
 ```sh
-$ docker compose build
+cp environment/mysql-admin.env.example environment/mysql-admin.env
+cp environment/mysql.env.example environment/mysql.env
+cp environment/site.env.example environment/site.env
 ```
 
-Start up the site, so you can perform the initial migrations and generate the static files:
+Sau đó, chỉnh sửa các file này:
+- Đặt mật khẩu MySQL trong `mysql.env` và `mysql-admin.env`
+- Đặt host và secret key trong `site.env`
+- Cấu hình `server_name` trong `dmoj/nginx/conf.d/nginx.conf`
+
+### Bước 4: Build Docker images
 
 ```sh
-$ docker compose up -d site db redis celery
+docker compose build
 ```
 
-You will need to generate the schema for the database, since it is currently empty:
+### Bước 5: Khởi động các dịch vụ
 
 ```sh
-$ ./scripts/migrate
+docker compose up -d site db redis celery
 ```
 
-You will also need to generate the static files:
+### Bước 6: Tạo database
 
 ```sh
-$ ./scripts/copy_static
+./scripts/migrate
 ```
 
-Finally, the VNOJ comes with fixtures so that the initial install is not blank. They can be loaded with the following commands:
+### Bước 7: Tạo static files
 
 ```sh
-$ ./scripts/manage.py loaddata navbar
-$ ./scripts/manage.py loaddata language_small
-$ ./scripts/manage.py loaddata demo
+./scripts/copy_static
 ```
 
-Keep in mind that the demo fixture creates a superuser account with a username and password of `admin`. You should change the user's password or remove the user entirely.
-
-You can also create a superuser account for yourself:
+### Bước 8: Load dữ liệu mẫu
 
 ```sh
-$ ./scripts/manage.py createsuperuser
+./scripts/manage.py loaddata navbar
+./scripts/manage.py loaddata language_small
+./scripts/manage.py loaddata demo
 ```
 
-## Usage
+**Lưu ý:** Lệnh trên tạo tài khoản admin với username và password đều là `admin`. Bạn nên đổi mật khẩu hoặc xóa tài khoản này.
 
-To start everything:
+Hoặc tạo tài khoản admin của riêng bạn:
 
 ```sh
-$ docker compose up -d
+./scripts/manage.py createsuperuser
 ```
 
-To stop everything:
+## Sử dụng
+
+Khởi động tất cả dịch vụ:
 
 ```sh
-$ docker compose down
+docker compose up -d
 ```
 
-## Notes
+Dừng tất cả dịch vụ:
+
+```sh
+docker compose down
+```
+
+## Các lưu ý quan trọng
 
 ### Judge server
 
-The judge server is not included in this Docker setup. Please refer to [Setting up a Judge](https://vnoi-admin.github.io/vnoj-docs/#/judge/setting_up_a_judge).
+Judge server không có trong Docker setup này. Vui lòng tham khảo [Setting up a Judge](https://vnoi-admin.github.io/vnoj-docs/#/judge/setting_up_a_judge).
 
-The bridge instance is included in this Docker setup and should be running once you start everything.
+Bridge instance đã được bao gồm và sẽ tự động chạy khi bạn khởi động.
 
-### Migrating
+### Cập nhật database (Migration)
 
-As the VNOJ site is a Django app, you may need to migrate whenever you update. Assuming the site container is running, running the following command should suffice:
-
-```sh
-$ ./scripts/migrate
-```
-
-### Managing Static Files
-
-If your static files ever change, you will need to rebuild them:
+Khi cập nhật hệ thống, bạn có thể cần chạy migration:
 
 ```sh
-$ ./scripts/copy_static
+./scripts/migrate
 ```
 
-### Updating The Site
+### Cập nhật Static Files
 
-Updating various sections of the site requires different images to be rebuilt.
-
-If any prerequisites were modified, you will need to rebuild most of the images:
+Nếu static files thay đổi, bạn cần rebuild:
 
 ```sh
-$ docker compose up -d --build base site celery bridged wsevent
+./scripts/copy_static
 ```
 
-If the static files are modified, read the section on [Managing Static Files](#managing-static-files).
+### Cập nhật mã nguồn
 
-If only the source code is modified, a restart is sufficient:
+Tùy vào phần nào thay đổi, bạn cần rebuild hoặc restart:
+
+**Nếu thay đổi dependencies:**
 
 ```sh
-$ docker compose restart site celery bridged wsevent
+docker compose up -d --build base site celery bridged wsevent
 ```
 
-### Multiple Nginx Instances
+**Nếu chỉ thay đổi code:**
 
-The `docker-compose.yml` configures Nginx to publish to port 80. If you have another Nginx instance on your host machine, you may want to change the port and proxy pass instead.
-
-For example, a possible Nginx configuration file on your host machine would be:
-
+```sh
+docker compose restart site celery bridged wsevent
 ```
+
+### Sử dụng nhiều Nginx instances
+
+Nếu bạn đã có Nginx chạy trên máy host, bạn có thể đổi port trong `docker-compose.yml` và cấu hình proxy pass.
+
+Ví dụ cấu hình Nginx trên máy host:
+
+```nginx
 server {
     listen 80;
     listen [::]:80;
@@ -158,22 +167,22 @@ server {
 }
 ```
 
-In this case, the port that the Nginx instance in the Docker container is published to would need to be modified to `10080`.
+Trong trường hợp này, bạn cần đổi port trong Docker container thành `10080`.
 
-### Load balancing
+### Load balancing (Phân tải)
 
-By default, all services (site, bridged, wsevent, db, celery, redis, etc.) run in the same machine. However, it is not ideal for handling a large number of users. In this case, you need to distribute the services to multiple servers. A typical setup would be:
+Mặc định, tất cả dịch vụ chạy trên cùng một máy. Để xử lý nhiều người dùng hơn, bạn có thể phân tán dịch vụ ra nhiều server:
 
-- One central server for nginx, db, redis, bridged, and wsevent
-- Multiple workers, each will run nginx, site, and celery
+- **Server trung tâm:** nginx, db, redis, bridged, wsevent
+- **Các worker:** nginx, site, celery
 
-#### Central server
+#### Cấu hình server trung tâm
 
-You need to configure `dmoj/nginx/conf.d/nginx.conf` to distribute traffic to workers. Refer to [Nginx docs](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) for how to do it.
+Chỉnh sửa `dmoj/nginx/conf.d/nginx.conf` để phân phối traffic đến các worker. Tham khảo [Nginx docs](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/).
 
-A sample configuration:
+Ví dụ:
 
-```
+```nginx
 upstream site {
     ip_hash;
     server srv1.example.com;
@@ -212,23 +221,28 @@ server {
 }
 ```
 
-Uncomment `ports` blocks in `dmoj/docker-compose.yml`. You also need to open these ports for workers to connect to:
-
+Mở các port sau trong `dmoj/docker-compose.yml`:
 - db: 3306
 - redis: 6379
-- bridged: 9998 9999
-- wsevent: 15100 15101 15102
+- bridged: 9998, 9999
+- wsevent: 15100, 15101, 15102
 
-Now, let's start the services:
+Khởi động dịch vụ:
 
 ```sh
 docker compose up -d nginx db redis bridged wsevent
 ```
 
-#### Worker
+#### Cấu hình worker
 
-You need to configure `dmoj/environment/site.env` and `dmoj/environment/mysql.env` to point to the central server.
+Chỉnh sửa `dmoj/environment/site.env` và `dmoj/environment/mysql.env` để trỏ đến server trung tâm.
+
+Khởi động dịch vụ:
 
 ```sh
 docker compose up -d nginx site celery
 ```
+
+## Hỗ trợ
+
+Nếu gặp vấn đề, vui lòng tạo issue tại [GitHub Issues](https://github.com/luyencode/lcoj-docker/issues).
