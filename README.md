@@ -102,7 +102,7 @@ docker compose down
 
 ### Judge server
 
-Judge server không có trong Docker setup này. Vui lòng tham khảo [Setting up a Judge](https://vnoi-admin.github.io/vnoj-docs/#/judge/setting_up_a_judge).
+Judge server không có trong Docker setup này. Vui lòng tham khảo [Hướng dẫn cài đặt Judge](https://luyencode.github.io/docs/#/judge/setting_up_a_judge).
 
 Bridge instance đã được bao gồm và sẽ tự động chạy khi bạn khởi động.
 
@@ -243,6 +243,12 @@ Khởi động dịch vụ:
 docker compose up -d nginx site celery
 ```
 
+## Tài liệu chi tiết
+
+Xem tài liệu đầy đủ tại: [https://docs.luyencode.net](https://docs.luyencode.net)
+
 ## Hỗ trợ
 
-Nếu gặp vấn đề, vui lòng tạo issue tại [GitHub Issues](https://github.com/luyencode/lcoj-docker/issues).
+Nếu gặp vấn đề:
+- Tạo issue tại [GitHub Issues](https://github.com/luyencode/lcoj-docker/issues)
+- Nếu bạn quá mệt mỏi để tự mình cài đặt, LCOJ sẽ hỗ trợ bạn cài đặt miễn phí: [https://luyencode.net/about/#lien-he](https://luyencode.net/about/#lien-he)

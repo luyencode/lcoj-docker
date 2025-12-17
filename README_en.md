@@ -102,7 +102,7 @@ docker compose down
 
 ### Judge Server
 
-The judge server is not included in this Docker setup. Please refer to [Setting up a Judge](https://vnoi-admin.github.io/vnoj-docs/#/judge/setting_up_a_judge).
+The judge server is not included in this Docker setup. Please refer to [Setting up a Judge](https://luyencode.github.io/docs/#/judge/setting_up_a_judge).
 
 The bridge instance is included and will run automatically when you start the services.
 
@@ -243,6 +243,12 @@ Start services:
 docker compose up -d nginx site celery
 ```
 
+## Documentation
+
+See full documentation at: [https://docs.luyencode.net](https://docs.luyencode.net)
+
 ## Support
 
-If you encounter any issues, please create an issue at [GitHub Issues](https://github.com/luyencode/lcoj-docker/issues).
+If you encounter any issues:
+- Create an issue at [GitHub Issues](https://github.com/luyencode/lcoj-docker/issues)
+- If you need help with installation, LCOJ offers free installation support: [https://luyencode.net/about/#lien-he](https://luyencode.net/about/#lien-he)
