@@ -1,0 +1,44 @@
+#!/bin/bash
+cd $(dirname $(dirname $0)) || exit
+
+# Run comment moderation SQL query against the database
+# This hides comments based on low scores
+#
+# Usage:
+#   ./scripts/moderate_comments          # Run moderation (UPDATE)
+#   ./scripts/moderate_comments --dry-run  # Show what would be hidden (SELECT)
+#
+# The script hides comments with score <= -5
+
+DB_USER=$(grep MYSQL_USER environment/mysql.env | cut -d= -f2)
+DB_PASS=$(grep MYSQL_PASSWORD environment/mysql.env | cut -d= -f2)
+DB_NAME=$(grep MYSQL_DATABASE environment/mysql.env | cut -d= -f2)
+
+SQL_WHERE="hidden = 0 AND score <= -5"
+
+if [[ "$1" == "--dry-run" ]]; then
+    echo "=== DRY RUN: Comments that would be hidden ==="
+    docker compose exec $COMPOSE_EXEC_FLAGS db /usr/bin/mariadb -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "
+        SELECT COUNT(*) as 'Total to hide'
+        FROM judge_comment
+        WHERE $SQL_WHERE;
+    " 2>/dev/null
+
+    echo ""
+    echo "=== Sample comments (last 5) ==="
+    docker compose exec $COMPOSE_EXEC_FLAGS db /usr/bin/mariadb -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "
+        SELECT id, LEFT(body, 80) as preview, score
+        FROM judge_comment
+        WHERE $SQL_WHERE
+        ORDER BY id DESC
+        LIMIT 5;
+    " 2>/dev/null
+else
+    echo "=== Running comment moderation ==="
+    docker compose exec $COMPOSE_EXEC_FLAGS db /usr/bin/mariadb -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "
+        UPDATE judge_comment
+        SET hidden = 1
+        WHERE $SQL_WHERE;
+    " 2>/dev/null
+    echo "Done. Comments have been hidden."
+fi
