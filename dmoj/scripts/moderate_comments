@@ -35,10 +35,18 @@ if [[ "$1" == "--dry-run" ]]; then
     " 2>/dev/null
 else
     echo "=== Running comment moderation ==="
+    # Get count of comments to be hidden
+    AFFECTED_COUNT=$(docker compose exec $COMPOSE_EXEC_FLAGS db /usr/bin/mariadb -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -sN -e "
+        SELECT COUNT(*)
+        FROM judge_comment
+        WHERE $SQL_WHERE;
+    " 2>/dev/null)
+
+    # Run the update
     docker compose exec $COMPOSE_EXEC_FLAGS db /usr/bin/mariadb -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "
         UPDATE judge_comment
         SET hidden = 1
         WHERE $SQL_WHERE;
     " 2>/dev/null
-    echo "Done. Comments have been hidden."
+    echo "Done. $AFFECTED_COUNT comment(s) have been hidden."
 fi
