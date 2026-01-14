@@ -1,3 +1,7 @@
 [submodule "dmoj/repo"]
 	path = dmoj/repo
 	url = https://github.com/luyencode/lcoj-site
+
+[submodule "docs"]
+	path = docs
+	url = https://github.com/luyencode/docs
