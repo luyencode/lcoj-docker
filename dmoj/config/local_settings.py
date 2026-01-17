@@ -108,7 +108,7 @@ STATICFILES_FINDERS += ('compressor.finders.CompressorFinder',)
 ADMINS = ()
 
 # The sender for the aforementioned emails.
-SERVER_EMAIL = 'VNOJ: VNOI Online Judge <vnoj@vnoi.info>'
+SERVER_EMAIL = 'LCOJ: Luyện Code Online Judge <luyencodeonline@gmail.com>'
 
 
 ################################################
@@ -135,10 +135,10 @@ DMOJ_RESOURCES = '/assets/resources/'
 ############################################
 
 ## DMOJ site display settings.
-SITE_NAME = 'VNOJ'
+SITE_NAME = 'LCOJ'
 SITE_FULL_URL = os.environ.get('SITE_FULL_URL', 'http://localhost/')
-SITE_LONG_NAME = 'VNOJ: VNOI Online Judge'
-SITE_ADMIN_EMAIL = 'leduythuc@vnoi.info'
+SITE_LONG_NAME = 'LCOJ: Luyện Code Online Judge'
+SITE_ADMIN_EMAIL = 'luyencodeonline@gmail.com'
 TERMS_OF_SERVICE_URL = None
 
 ## Media files settings.
@@ -313,8 +313,8 @@ LOGGING = {
 ## Python Social Auth
 # Documentation: https://python-social-auth.readthedocs.io/en/latest/
 # You can define these to enable authentication through the following services.
-#SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = ''
-#SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ''
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY', '')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET', '')
 #SOCIAL_AUTH_FACEBOOK_KEY = ''
 #SOCIAL_AUTH_FACEBOOK_SECRET = ''
 #SOCIAL_AUTH_GITHUB_SECURE_KEY = ''
@@ -327,3 +327,6 @@ LOGGING = {
 FILE_UPLOAD_PERMISSIONS = 0o644
 
 VNOJ_CP_TICKET = 5
+
+# Only allow OAuth registration (disable traditional username/password registration)
+OAUTH_ONLY = True
