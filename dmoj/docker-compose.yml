@@ -100,7 +100,7 @@ services:
     image: nginx:alpine
     restart: unless-stopped
     ports:
-      - 80:80
+      - ${NGINX_PORT:-80}:80
     volumes:
       - assets:/assets/
       - userdatacache:/userdatacache/
@@ -108,6 +108,7 @@ services:
       - cache:/cache/
       - ./media/:/media/
       - ./nginx/conf.d/:/etc/nginx/conf.d/
+    env_file: [environment/site.env]
     networks: [nginx]
     depends_on: [site, wsevent]
 networks:
