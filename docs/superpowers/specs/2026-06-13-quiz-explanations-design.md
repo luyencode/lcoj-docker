@@ -28,11 +28,11 @@ choices = [
 ]
 ```
 
-**Migration:** zip `choices` (strings) with `choice_explanations` (strings) into the merged format. Where `choice_explanations` is shorter than `choices`, pad with `""`.
+**Migration:** zip `choices` (strings) with `choice_explanations` (strings) into the merged format. Where `choice_explanations` is shorter than `choices`, pad with `""`. Where it is longer (shouldn't happen but handle defensively), truncate to `len(choices)`.
 
 `QuizQuestion.explanation` (question-level markdown textarea) is unchanged.
 
-`grading.py` uses only `len(choices)` for MA strategy calculations and never reads choice text — no changes needed there.
+`grading.py` uses only `len(choices)` for MA strategy calculations and never reads choice text. No logic changes needed, but note the `choices` parameter type changes from `list[str]` to `list[dict]` — callers must pass the new format. `len([{"text":..., "explanation":...}])` behaves identically to `len(["..."])` so all calculations remain correct.
 
 ### 2.2 Quiz.result_feedback — replace two booleans with one enum
 
@@ -71,12 +71,14 @@ result_feedback = models.CharField(
 
 Editors (`quiz.is_editable_by(user)`) always receive full feedback regardless of `result_feedback`.
 
+**Note:** `result_feedback` takes effect immediately for all attempts, including already-submitted ones. If a teacher changes this field after students have submitted, their result pages update at once. This is intentional — the field controls the quiz's disclosure policy, not a per-attempt snapshot.
+
 ## 3. Result page behaviour
 
 The result page renders three distinct modes:
 
 ### `score_only`
-Score banner + question list showing the student's answers only. No green/red marking. No correct answers. No explanations.
+Score banner + question list showing question text and the student's answers only. No green/red marking. No correct answers. No explanations. The question text is visible so the student can review what they answered; only correctness information is withheld.
 
 ### `correctness`
 Score banner + per-question green/red marking. Student's answer highlighted as correct or incorrect. Correct answer **not** revealed. No explanations shown.
@@ -88,6 +90,8 @@ Everything in `correctness`, plus:
 - Each choice that has a non-empty `explanation` shows a **"Why?"** toggle button; clicking it expands a callout beneath that choice
 
 The "Why?" toggle is client-side only — all explanation text is rendered in the page HTML and toggled via CSS/JS. No extra requests.
+
+**Shuffle compatibility:** choices on the result page must be rendered in the same order the student saw during the attempt, using the shuffled indices stored in `QuizAttempt.choice_orders[str(question_id)]`. Choice explanations travel with their choice objects, so they automatically appear next to the correct choice regardless of shuffle order.
 
 ## 4. Question editor UI
 
@@ -110,20 +114,20 @@ The question-level `explanation` remains a full markdown textarea (unchanged).
 
 ### 5.1 XLSX template
 
-Add `explanation_1 … explanation_6` columns interleaved with `choice_1 … choice_6`:
+Add `choice_explanation_1 … choice_explanation_6` columns interleaved with `choice_1 … choice_6`:
 
 ```
 type | title | content
-  | choice_1 | explanation_1
-  | choice_2 | explanation_2
+  | choice_1 | choice_explanation_1
+  | choice_2 | choice_explanation_2
   | …
-  | choice_6 | explanation_6
+  | choice_6 | choice_explanation_6
   | correct | points | category | level | explanation | shuffle | ma_strategy
 ```
 
-Interleaving (choice then its explanation) is more author-friendly than a separate block of 6 explanation columns at the end.
+The prefix `choice_` disambiguates from the `explanation` column (question-level). Interleaving is more author-friendly than a separate block of 6 columns at the end.
 
-At parse time, `choice_N` + `explanation_N` pairs are zipped into `{"text": ..., "explanation": ...}` objects. Blank explanation cells produce `""`.
+At parse time, `choice_N` + `choice_explanation_N` pairs are zipped into `{"text": ..., "explanation": ...}` objects. Blank cells produce `""`. All `choice_explanation_N` columns are optional — authors can omit them entirely for questions without per-choice explanations.
 
 The existing `explanation` column remains for the question-level explanation.
 
@@ -154,9 +158,10 @@ Reads `.text` and `.explanation` from each choice object and writes them to the 
 | `quiz/grading.py` | No changes needed |
 | `quiz/views/student.py` | `QuizResult`: replace `show_correctness`/`show_answers` context vars with `result_feedback` |
 | `quiz/views/editor.py` | Question form: render choice rows with explanation sub-field |
-| `quiz/importers/xlsx_fmt.py` | Parse/write interleaved `explanation_N` columns |
+| `quiz/importers/xlsx_fmt.py` | Parse/write interleaved `choice_explanation_N` columns |
 | `quiz/importers/json_fmt.py` | Accept `choices` as objects; default `explanation` to `""` |
 | `quiz/admin.py` | Replace two checkboxes with `result_feedback` dropdown |
 | Templates `quiz/result.html` | Implement three feedback modes; "Why?" toggle |
 | Templates `quiz/question_form.html` | Explanation sub-field per choice row |
 | `resources/quiz.js` | "Why?" toggle; choice row add/remove handles both sub-fields |
+| `quiz/tests/` | Update any test that constructs `choices` as `["A", "B", ...]` to use the new `[{"text": "A", "explanation": ""}, ...]` format |
