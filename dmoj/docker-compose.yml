@@ -74,9 +74,7 @@ services:
     env_file: [environment/mysql.env, environment/site.env]
     networks: [site, nginx, db]
     depends_on: [base, db, redis]
-    ports:
-      - 9998:9998
-      - 9999:9999
+    # ports: see docker-compose.override.yml
   wsevent:
     container_name: lcoj_wsevent
     build:
@@ -99,8 +97,7 @@ services:
     container_name: lcoj_nginx
     image: nginx:alpine
     restart: unless-stopped
-    ports:
-      - ${NGINX_PORT:-80}:80
+    # ports: see docker-compose.override.yml
     volumes:
       - assets:/assets/
       - userdatacache:/userdatacache/

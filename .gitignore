@@ -4,4 +4,6 @@ dmoj/media/
 dmoj/problems/
 dmoj/environment/*.env
 dmoj/*.sh
+dmoj/docker-compose.override.yml
+dmoj/.env
 .agent
